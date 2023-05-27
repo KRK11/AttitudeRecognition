@@ -63,4 +63,6 @@ def init(mode):
                             help='the interval between two processed frame (default: 0)')
         parser.add_argument('--maxn', default=2, type=int, metavar='N',
                             help='the max number of detected people (default: 2)')
+        parser.add_argument('--save', action='store_true',
+                            help='save the video (default: False)')
     return parser.parse_args()

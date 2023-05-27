@@ -21,6 +21,7 @@ from arguments import init
 from cpn.network import cpn
 from utils.image_utils import load_image, im_to_torch
 from utils.model_utils import get_keypoints, switch
+from utils.os_utils import newdir
 
 dirname = os.path.dirname(__file__)
 sys.path.append(os.path.abspath(os.path.join(dirname, 'cpn')))
@@ -117,21 +118,38 @@ def people_detect(args, image):
 def main(args):
     yolo_model = YOLO('yolov8s.pt')
     model = loader(args)
+
     cap = cv2.VideoCapture(0 if args.source == '0' else args.source)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    if args.source == '0':
+        fps = 8
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    if args.save:
+        path = newdir('run')
+        if not os.path.exists(path):
+            os.makedirs(path)
+        video_path = os.path.join(path, f'result.mp4')
+        video_writer = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+
     status = args.interval
     keyp = []
     while True:
         ret, image = cap.read()
         if ret:
-            image = cv2.flip(image, 1)
+            if args.source == '0':
+                image = cv2.flip(image, 1)
             status += 1
             if status >= args.interval + 1:
                 results = yolo_model(image)
                 boxes = results[0].boxes
                 keyp = []
                 count = 0
-                for box, conf in zip(boxes.xyxy, boxes.conf):
-                    if conf < 0.75 or count + 1 > args.maxn:
+                for box, conf, cls in zip(boxes.xyxy, boxes.conf, boxes.cls):
+                    if cls != 0:
+                        continue
+                    if conf < 0.7 or count + 1 > args.maxn:
                         break
                     count += 1
                     x1, y1, x2, y2 = box
@@ -147,6 +165,8 @@ def main(args):
                 status = 0
             draw_list(args, image, keyp)
             cv2.imshow('KRKyyds', image)
+            if args.save:
+                video_writer.write(image)
             if cv2.waitKey(25) & 0xFF == 27:
                 break
         else:
@@ -154,6 +174,9 @@ def main(args):
             break
 
     cap.release()
+    if args.save:
+        print(f'Video is saved at {video_path}.')
+        video_writer.release()
     cv2.destroyAllWindows()
 
 
