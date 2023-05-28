@@ -76,9 +76,12 @@ def train(args, train_loader, model, criterion1, criterion2, optimizer):
             global_loss += criterion1(global_output, global_label.to(args.device)) / 2.0
         refine_loss = criterion2(refine_outputs, target7.to(args.device))
         refine_loss = refine_loss.mean(dim=3).mean(dim=2)
+        zero_loss = (refine_loss * torch.Tensor(origin_keypoints[:, :, 2] < 0.1)).sum() / num_points
         refine_loss *= torch.Tensor(origin_keypoints[:, :, 2] > 0.1)
         refine_loss = ohkm(refine_loss, 8)
         loss = global_loss + refine_loss
+        if args.zloss:
+            loss += zero_loss
 
         global_epoch_loss.append(global_loss.item())
         refine_epoch_loss.append(refine_loss.item())
@@ -124,13 +127,16 @@ def valid(args, valid_loader, model, criterion1, criterion2):
             for global_output, label in zip(global_outputs, targets):
                 num_points = global_output.size()[1]
                 global_label = label * (origin_keypoints[:, :, 2] > 1.1).type(torch.FloatTensor).view(-1, num_points, 1,
-                                                                                                      1)
+                                                                                                     1)
                 global_loss += criterion1(global_output, global_label.to(args.device)) / 2.0
             refine_loss = criterion2(refine_outputs, target7.to(args.device))
             refine_loss = refine_loss.mean(dim=3).mean(dim=2)
+            zero_loss = (refine_loss * torch.Tensor(origin_keypoints[:, :, 2] < 0.1)).sum() / num_points
             refine_loss *= torch.Tensor(origin_keypoints[:, :, 2] > 0.1)
             refine_loss = ohkm(refine_loss, 8)
             loss = global_loss + refine_loss
+            if args.zloss:
+                loss += zero_loss
 
             global_epoch_loss.append(global_loss.item())
             refine_epoch_loss.append(refine_loss.item())

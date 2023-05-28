@@ -46,6 +46,8 @@ def init(mode):
                             help='do not save the model')
         parser.add_argument('--threshold', default=0.1, type=float, metavar='N',
                             help='the accuracy of different distance threshold(0-1) (default: 0.1)')
+        parser.add_argument('--zloss', action='store_true',
+                            help="add zero_loss(points do not exist) to loss")
     elif mode == 'predict':
         parser.add_argument('--image', default=None, type=str, metavar='PATH',
                             help='the image for predict (default: None)')

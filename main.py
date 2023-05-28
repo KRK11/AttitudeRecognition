@@ -44,11 +44,14 @@ def rotate(image, keypoints):
 
 if __name__ == '__main__':
 
-    a = np.random.randn(2, 3, 1, 1)
-    print(a)
-    order = [0, 2, 1]
-    a[:] = a[:, order]
-    print(a)
+    a = np.zeros((10, 10))
+    a = generate_heatmap(a, (5, 5), (15, 15))
+    print(np.amax(a))
+    # a = np.random.randn(2, 3, 1, 1)
+    # print(a)
+    # order = [0, 2, 1]
+    # a[:] = a[:, order]
+    # print(a)
     # image = cv2.imread(r'D:\python\MachineLearning\datasets\coco2017-people\train_image\33.jpg')
     # dtf = pd.read_csv(r'D:\python\MachineLearning\datasets\coco2017-people\train_label.csv')
     # keypoints = dtf.iloc[32, 1:18]
