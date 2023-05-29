@@ -111,10 +111,6 @@ def people_pose(args, model, image):
     return keypoints
 
 
-def people_detect(args, image):
-
-    return image
-
 def main(args):
     yolo_model = YOLO('yolov8s.pt')
     model = loader(args)

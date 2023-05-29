@@ -10,6 +10,7 @@ import random
 
 import numpy as np
 import cv2
+import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 
@@ -42,8 +43,8 @@ def im_to_torch(img):
 
 def generate_heatmap(heatmap, pt, sigma):
     x, y = int(pt[0]), int(pt[1])
-    x = min(x, 47)
-    y = min(y, 63)
+    x = min(x, heatmap.shape[1])
+    y = min(y, heatmap.shape[0])
     heatmap[y][x] = 1
     heatmap = cv2.GaussianBlur(heatmap, sigma, 0)
     am = np.amax(heatmap)
@@ -60,31 +61,54 @@ def generate_label(keypoints, num_class, gauss_kernel, out_shape=(64, 48)):
 
 
 def show_heatmap(heatmap, image, keypoints):
-    fig = plt.figure(figsize=(50, 50))
-    for i in range(heatmap.shape[0]):
-        plt.subplot(9, 4, i * 2 + 1)
-        plt.imshow(heatmap[i], cmap='hot', interpolation='nearest')
-        plt.colorbar()
-
+    plt.subplot(1, 2, 1)
+    plt.imshow(image[:, :, ::-1])
+    plt.colorbar()
+    plt.title('Image')
+    for i in range(len(keypoints)):
         x, y, _ = keypoints[i]
-        plt.subplot(9, 4, i * 2 + 2)
-        plt.imshow(image)
+        x = int(x * image.shape[1])
+        y = int(y * image.shape[0])
         plt.plot(x, y, 'yo')
         plt.axis('off')
+        heatmap[y][x] = 1
+
+    heatmap = cv2.GaussianBlur(heatmap, (101, 101), 0)
+    am = np.amax(heatmap)
+    heatmap /= am / 255
+
+    for i in range(len(keypoints)):
+        plt.subplot(6, 6, i % 3 + (i // 3) * 6 + 4)
+        single_heatmap = np.zeros(image.shape[:2])
+        x, y, _ = keypoints[i]
+        x = int(x * image.shape[1])
+        y = int(y * image.shape[0])
+        single_heatmap = generate_heatmap(single_heatmap, (x, y), (101, 101))
+        plt.imshow(single_heatmap, cmap='hot', interpolation='nearest')
+        colorbar = plt.colorbar()
+        if (i % 3 + (i // 3) * 6 + 4) % 6:
+            colorbar.set_ticks([])
+        plt.axis('off')
+
+    plt.subplot(6, 6, 36)
+    plt.imshow(heatmap, cmap='hot', interpolation='nearest')
+    plt.colorbar()
+    plt.axis('off')
+
     plt.show()
 
 
 if __name__ == '__main__':
-    score = np.zeros((20, 20))
-    score = generate_heatmap(score, (10, 10), (15, 15))
-    print(score[10, 10])
-    print(score)
-    # score = np.zeros((17, 64, 48))
-    # for i in range(17):
-        # x = random.randint(0, 47)
-        # y = random.randint(0, 63)
-        # score[i] = generate_heatmap(score[i], (x, y), (15, 15))
-    # show_heatmap(score)
+    # score = np.zeros((20, 20))
+    # score = generate_heatmap(score, (10, 10), (15, 15))
+    # print(score[10, 10])
+    # print(score)
+    image = cv2.imread(r'D:\python\MachineLearning\datasets\coco2017-people\train_image\74.jpg')
+    dtf = pd.read_csv(r'D:\python\MachineLearning\datasets\coco2017-people\train_label.csv')
+    key_points = dtf.iloc[73, 1:18]
+    key_points = np.array([np.array(i.strip('[]').split(', ')).astype(np.float32) for i in key_points])
+    score = np.zeros(image.shape[:2])
+    show_heatmap(score, image, key_points)
 
     # plt.imshow(score, cmap='hot', interpolation='nearest')
     # plt.colorbar()
