@@ -44,9 +44,9 @@ def rotate(image, keypoints):
 
 if __name__ == '__main__':
 
-    a = np.zeros((10, 10))
-    a = generate_heatmap(a, (5, 5), (15, 15))
-    print(np.amax(a))
+    # a = np.zeros((10, 10))
+    # a = generate_heatmap(a, (5, 5), (15, 15))
+    # print(np.amax(a))
     # a = np.random.randn(2, 3, 1, 1)
     # print(a)
     # order = [0, 2, 1]
@@ -220,8 +220,8 @@ if __name__ == '__main__':
         image1 = image.copy()
         cv2.circle(image1, (int(x1 * width), int(y1 * height)), width // 10, (63, 255, 127), 3)
         cv2.circle(image1, (int(x2 * width), int(y2 * height)), 3, (127, 63, 255), 3)
-        # cv2.imshow('1', image1)
-        # cv2.waitKey(0)
+        cv2.imshow('1', image1)
+        cv2.waitKey(0)
 
     key_points = np.expand_dims(key_points, axis=0)
     pred = np.expand_dims(pred, axis=0)

@@ -26,11 +26,11 @@ class DataSet(Dataset):
         self.out_shape = (shape[0] // 4, shape[1] // 4)
         self.num_class = args.num_class
         self.pixel_means = (np.array([102.9801, 115.9465, 122.7717], dtype=np.float32) / 255.0).reshape(3, 1, 1)  # BGR
-        assert flag in ['train', 'valid', 'test'], 'not implement'
+        assert flag in ['train', 'valid', 'test', 'mytest'], 'not implement'
         if self.flag == 'train':
             self.path = os.path.join(args.dataset, 'train_image')
             self.dtf = pd.read_csv(os.path.join(args.dataset, 'train_label.csv'))
-        elif self.flag == 'valid' or self.flag == 'test':
+        else:
             self.path = os.path.join(args.dataset, 'valid_image')
             self.dtf = pd.read_csv(os.path.join(args.dataset, 'valid_label.csv'))
         self.len = int(self.dtf.shape[0] * args.ratio / 100)
@@ -62,8 +62,11 @@ class DataSet(Dataset):
         image_id = self.dtf.iloc[item, 0]
         key_points = self.dtf.iloc[item, 1:18]
         width, height, real_image_id, x_offset, y_offset = 0, 0, 0, 0, 0
-        if self.flag == 'test':
-            width, height, real_image_id, x_offset, y_offset = self.dtf.iloc[item, 18:23]
+        if self.flag == 'test' or self.flag == 'mytest':
+            width, height, real_image_id = self.dtf.iloc[item, 18:21]
+            try:
+                x_offset, y_offset = self.dtf.iloc[item, 21:23]
+            except Exception: pass
         key_points = np.array([np.array(i.strip('[]').split(', ')).astype(np.float32) for i in key_points])
         image_path = join(self.path, f'{image_id}.jpg')
         image = load_image(image_path)
@@ -101,6 +104,8 @@ class DataSet(Dataset):
 
         if self.flag == 'test':
             return input, input_flip, width, height, real_image_id, x_offset, y_offset
+        elif self.flag == 'mytest':
+            return input, input_flip, width, height, image_id
         elif self.flag == 'valid':
             return input, input_flip, targets, origin_keypoints
         elif self.flag == 'train':

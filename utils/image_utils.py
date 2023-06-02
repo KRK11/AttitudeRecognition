@@ -43,8 +43,8 @@ def im_to_torch(img):
 
 def generate_heatmap(heatmap, pt, sigma):
     x, y = int(pt[0]), int(pt[1])
-    x = min(x, heatmap.shape[1])
-    y = min(y, heatmap.shape[0])
+    x = min(x, heatmap.shape[1] - 1)
+    y = min(y, heatmap.shape[0] - 1)
     heatmap[y][x] = 1
     heatmap = cv2.GaussianBlur(heatmap, sigma, 0)
     am = np.amax(heatmap)
@@ -96,6 +96,45 @@ def show_heatmap(heatmap, image, keypoints):
     plt.axis('off')
 
     plt.show()
+
+
+def display_heatmap(heatmap, image, keypoints):
+    plt.subplot(2, 2, 1)
+    plt.imshow(image[:, :, ::-1])
+    plt.rcParams['font.size'] = 6
+    plt.title('Image')
+
+    new_heatmap = np.zeros(image.shape[:2])
+
+    for i in range(len(keypoints)):
+        x, y, _ = keypoints[i]
+        x = int(x * image.shape[1])
+        y = int(y * image.shape[0])
+        plt.plot(x, y, 'yo')
+        plt.axis('off')
+        new_heatmap[y][x] = 1
+
+    new_heatmap = cv2.GaussianBlur(new_heatmap, (101, 101), 0)
+    am = np.amax(new_heatmap)
+    new_heatmap /= am
+
+    new_heatmap = np.mean(heatmap, axis=0)
+    for i in range(len(keypoints)):
+        plt.subplot(6, 6, i % 3 + (i // 3) * 6 + 4)
+        single_heatmap = heatmap[i]
+        plt.imshow(single_heatmap, cmap='coolwarm', interpolation='nearest')
+        colorbar = plt.colorbar()
+        if (i % 3 + (i // 3) * 6 + 4) % 6:
+            colorbar.set_ticks([])
+        plt.axis('off')
+
+    plt.subplot(2, 2, 3)
+    plt.imshow(new_heatmap, cmap='coolwarm', interpolation='nearest')
+    plt.colorbar()
+    plt.axis('off')
+
+    plt.show()
+
 
 
 if __name__ == '__main__':
