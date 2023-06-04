@@ -100,19 +100,19 @@ python train.py --help
 ### test.py
 
 ```
-python train.py --help
+python test.py --help
 ```
 
 ### predict.py
 
 ```
-python train.py --help
+python predict.py --help
 ```
 
 ### run.py
 
 ```
-python train.py --help
+python run.py --help
 ```
 
 
